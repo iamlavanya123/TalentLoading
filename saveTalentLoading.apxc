@@ -1,0 +1,181 @@
+public class saveTalentLoading {
+    @AuraEnabled
+    public static void createTalentRecords(String talentLoadingRecords, String talentLoadingLineRecords, String engId, Date start, Date endd){
+        Project__c engagement = [Select Id,isTalentLoad__c,TalentloadVersion__c,Talent_Frequency__c from Project__c where Id =: engId];
+		System.debug('talentLoading'+talentLoadingRecords);
+        System.debug('talentLoadingLine'+talentLoadingLineRecords);
+        // System.debug('talentLoadingLine'+formdata);
+        engagement.isTalentLoad__c = true;
+        if(engagement.TalentloadVersion__c == null)
+            engagement.TalentloadVersion__c =0;
+        engagement.TalentloadVersion__c += 1;
+        update engagement;
+        List<talentload> talentLoadingList = (List<talentload>)System.JSON.deserialize(talentLoadingRecords,List<talentload>.class);
+        System.debug('talentLoadingList'+talentLoadingList);
+        List<talentloadchild> talentLoadingLines = (List<talentloadchild>)System.JSON.deserialize(talentLoadingLineRecords,List<talentloadchild>.class);
+        System.debug('talentLoadingLineList'+talentLoadingLines);
+        
+        List<Talent_Loading__c> tlaodList=new List<Talent_Loading__c>();
+        for(talentload tl:talentLoadingList){
+            Talent_Loading__c tlo= new Talent_Loading__c();
+            tlo.Engagement__c = engId;
+            tlo.Role__c=tl.role;
+            tlo.Location__c=tl.location;
+			tlo.Version__c = engagement.TalentloadVersion__c;
+            tlo.Start_Date__c = start;
+            tlo.End_Date__c = endd;
+            tlaodList.add(tlo);
+            
+        }
+        insert tlaodList;
+        system.debug('tlaodList>>'+tlaodList);
+        List<Talent_Loading_Line__c> tlaodlineList=new List<Talent_Loading_Line__c>();
+        
+        for(integer i=0;i<tlaodList.size();i++){
+            for(talentloadchild tchild:talentLoadingLines){
+                if(i == tchild.indexes){
+                    Talent_Loading_Line__c tlo= new Talent_Loading_Line__c();
+                    tlo.Talent_Loading__c=tlaodList[i].Id;
+                    if(engagement.Talent_Frequency__c == 'Monthly'){
+                        tlo.Month__c=tchild.months;
+                    }
+                    else{
+                        tlo.Week__c=tchild.months;
+                    }
+                    
+                    tlo.Hours__c=tchild.hours;
+                    tlaodlineList.add(tlo);
+                }
+            }
+        }
+        insert tlaodlineList;
+        system.debug('tlaodlineList>>'+tlaodlineList);
+		
+		
+    }
+    
+    @AuraEnabled(cacheable=true)
+public static List<Talent_Loading__c> getTalentLoadings(Id recId) {
+    Project__c proj = [SELECT Id, isTalentLoad__c, TalentloadVersion__c FROM Project__c WHERE Id = :recId];
+    List<Talent_Loading__c> talentRecords = new List<Talent_Loading__c>();
+    
+    if (proj.isTalentLoad__c == true) {
+        talentRecords = [
+            SELECT Id, Version__c, Role__c, Location__c,
+                (SELECT Id, Week__c, Month__c, Hours__c FROM Talent_Loading_Lines__r)
+            FROM Talent_Loading__c
+            WHERE Engagement__c = :recId AND Version__c = :proj.TalentloadVersion__c
+        ];
+        
+        for (Talent_Loading__c talentRecord : talentRecords) {
+            for (Talent_Loading_Line__c talentLine : talentRecord.Talent_Loading_Lines__r) {
+                if (talentLine.Hours__c == null) {
+                    talentLine.Hours__c = 0;
+                }
+            }
+        }
+    }
+    
+    return talentRecords;
+}
+
+    @AuraEnabled(cacheable=true)
+    public static List<TeamAllocation__c> getTeamAllocations(Id projId) {
+        // Retrieve and return the TeamAllocation records
+       List<TeamAllocation__c> record =  [SELECT Id, Talent_Loading__c, (SELECT Id FROM Timesheet_Activities__r) FROM TeamAllocation__c WHERE Project__c =: projId];
+       return record;
+    }
+    @AuraEnabled(cacheable=true)
+    public static Project__c getProject(Id recordId) {
+        Project__c record = [SELECT Id, Name, isTalentLoad__c,Talent_Frequency__c,TalentloadVersion__c, Start_Date__c, End_Date__c from Project__c where Id =: recordId];
+        return record;
+    }
+     @AuraEnabled(cacheable=true)
+public static String getProjectType(Id recordId) {
+    Project__c record = [SELECT Project_Type__c FROM Project__c WHERE Id = :recordId];
+    Schema.DescribeFieldResult fieldResult = Project__c.Project_Type__c.getDescribe();
+    List<Schema.PicklistEntry> picklistValues = fieldResult.getPicklistValues();
+    
+    for (Schema.PicklistEntry picklistEntry : picklistValues) {
+        if (picklistEntry.getValue().equals(record.Project_Type__c)) {
+            return picklistEntry.getLabel();
+        }
+    }
+    
+    return null;
+}
+    @AuraEnabled(cacheable=true)
+     public static Decimal getCustomSettingValue() {
+                TL_default_rows__c customSetting = TL_default_rows__c.getValues('rows');
+        if (customSetting != null) {
+            return customSetting.default_rows__c;
+        }
+        return null;
+     }
+        
+    @AuraEnabled
+    public static void updateTalentFrequency(String recordId, String talentFrequency) {
+        Project__c project = [SELECT Id, Name,Talent_Frequency__c,TalentloadVersion__c,Start_Date__c, End_Date__c from Project__c where Id =: recordId];
+        project.Talent_Frequency__c = talentFrequency;
+        update project;
+         
+    }
+
+    @AuraEnabled
+    public static void updateTalentFrequencyToZero(String recordId) {
+        Project__c project = [SELECT Id, Name,Talent_Frequency__c,TalentloadVersion__c,Start_Date__c, End_Date__c from Project__c where Id =: recordId];
+        project.Talent_Frequency__c = null;
+        update project;
+         
+    }
+ @AuraEnabled
+    public static void deleteTalentLoadings(Id projectId) {
+        Project__c project = [SELECT Id,Talent_Frequency__c,TalentloadVersion__c, isTalentLoad__c from Project__c where Id =: projectId];
+
+        List<Talent_Loading__c> talentLoadings = [SELECT Id FROM Talent_Loading__c WHERE Engagement__c = :projectId];
+        
+        if (!talentLoadings.isEmpty()) {
+            delete talentLoadings;
+        }
+        project.TalentloadVersion__c = 0;
+        project.isTalentLoad__c = false;
+        project.Talent_Frequency__c = null;
+        update project;
+        
+    }
+
+ @AuraEnabled
+    public static void deleteTalentLoadingsTeamAlloc(Id projectId) {
+        Project__c project = [SELECT Id,Talent_Frequency__c,TalentloadVersion__c, isTalentLoad__c from Project__c where Id =: projectId];
+
+        List<Talent_Loading__c> talentLoadings = [SELECT Id FROM Talent_Loading__c WHERE Engagement__c = :projectId];
+        
+      if (!talentLoadings.isEmpty()) {
+        // Get the related Team Allocations
+        List<TeamAllocation__c> teamAllocations = [SELECT Id FROM TeamAllocation__c WHERE Talent_Loading__c IN :talentLoadings];
+        
+        // Delete the Talent Loadings and the related Team Allocations
+        delete talentLoadings;
+        delete teamAllocations;
+    }
+        project.TalentloadVersion__c = 0;
+        project.isTalentLoad__c = false;
+        project.Talent_Frequency__c = null;
+        update project;
+        
+    }
+
+ 
+    public class talentload{
+        @AuraEnabled public String role;
+        @AuraEnabled public string location;
+    }
+    
+    public class talentloadchild{
+        @AuraEnabled public Integer indexes;
+        @AuraEnabled public String months;
+        @AuraEnabled public Decimal hours;
+    }
+    
+    
+}
