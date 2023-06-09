@@ -1,0 +1,10 @@
+.modal-container{
+    max-width:100rem !important;
+    width:90% !important;
+ 
+    
+}
+
+.slds-modal__close {
+    display: none;
+  }

@@ -1,0 +1,66 @@
+.cardSpinner {
+    max-width: 900px;
+    border-radius: 8px;
+    overflow-y: auto; 
+    position: relative;
+  }
+  
+  .title {
+   
+    font-size: 1rem;
+    margin-top: 0;
+  }
+  
+  h3{
+    font-size: 1.2rem;
+  
+  }
+  .spinnerContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+  }
+  
+  .slds-var-p-around_small {
+    padding: 1rem;
+  }
+  
+  
+  .centered-title .slds-card__header-title{
+    text-align: center;
+    font-size: 1.3rem;
+  }
+  
+  
+  .heading {
+    display: inline-block;
+    margin-right: 0;
+  }
+  
+  
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  
+  
+  th,td{
+    text-align: center;
+    min-width: 90px;
+  }
+  
+  .role-left{
+    text-align: left;
+  
+  }
+  
+  table{
+      width: 99%;
+  }
+  
+  .total-color{
+    background-color: 	#9bedff ;
+  }
+  
+  /* #98FFB3 */

@@ -1,0 +1,350 @@
+<template>
+    <template if:true={showModal}>
+        <lightning-card>
+          <div class="modal-content" style="margin-left: 10px; margin-right: 10px;">
+            <h2 slot="title" style="text-align: center; padding-top: 0%;" class="inlineTitle slds-p-top--large slds-p-horizontal--medium slds-p-bottom--medium slds-text-heading--medium">New Talent Loading</h2>
+            <template if:true={leadSourceValues.data}>
+            <div>
+            <p style="margin-left: 25%; font-size:0.875rem;">Select a frequency</p>
+              <lightning-radio-group
+                style="margin-left: 33%; font-size:0.875rem;"
+                options={leadSourceValues.data.values}
+                value = {frequency}
+                onchange={handleFrequencyChange}
+              ></lightning-radio-group>
+            </div>
+        </template>
+            <div style="text-align: right;">
+              <lightning-button
+                variant="brand"
+                label="Next"
+                onclick={handleNext}
+                style="margin-right: 10px;"
+              ></lightning-button>
+              <lightning-button
+                variant="neutral"
+                label="Cancel"
+                onclick={cancelAction}
+              ></lightning-button>
+            </div>
+          </div>
+        
+        </lightning-card>
+      </template>
+
+      <template if:true={showConfirmationModal}>
+        <div tabindex="-1" class="modal-glass slds-backdrop fadein slds-backdrop--open"  style="opacity: 0.8;"></div>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+          aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+          <div class="slds-modal__container">
+            <header class="slds-modal__header">
+              <h2 id="modal-heading-01" class="slds-text-heading_medium">Confirmation</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+              <p>Are you sure you want to delete all the Talent Loadings related to this Engagement?</p>
+            </div>
+            <footer class="slds-modal__footer">
+              <lightning-button variant="neutral"  style="margin-left: 8px; padding-bottom: 8px;" label="Cancel" onclick={deleteCancel}></lightning-button>
+              <lightning-button variant="brand"  style="margin-left: 8px; padding-bottom: 8px;" label="Confirm" onclick={handleConfirmation}></lightning-button>
+            </footer>
+          </div>
+        </section>
+   
+      </template>
+
+      <template if:true={showSavePopUp}>
+        <div tabindex="-1" class="modal-glass slds-backdrop fadein slds-backdrop--open"  style="opacity: 0.8;"></div>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+          aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+          <div class="slds-modal__container">
+            <header class="slds-modal__header">
+              <h2 id="modal-heading-02" class="slds-text-heading_medium">Warning</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2">
+              <p>Team Allocation is mapped to Talent Loading, any changes are not possible! </p>
+            </div>
+            <footer class="slds-modal__footer">
+              <lightning-button variant="brand"  style="text-align: center;" label="OK" onclick={savePopUpOk}></lightning-button>
+            </footer>
+          </div>
+        </section>
+   
+      </template>
+
+      <template if:true={showDeletePopupTimeSheet}>
+        <div tabindex="-1" class="modal-glass slds-backdrop fadein slds-backdrop--open"  style="opacity: 0.8;"></div>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-03" aria-modal="true"
+          aria-describedby="modal-content-id-3" class="slds-modal slds-fade-in-open">
+          <div class="slds-modal__container">
+            <header class="slds-modal__header">
+              <h2 id="modal-heading-03" class="slds-text-heading_medium">Warning</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-3">
+              <p>TimeSheet is mapped to Team Allocation, talent Loadings cannot be deleted! </p>
+            </div>
+            <footer class="slds-modal__footer">
+              <lightning-button variant="brand"  style="text-align: center;" label="OK" onclick={savePopUpOk}></lightning-button>
+            </footer>
+          </div>
+        </section>
+   
+      </template>
+
+      <template if:true={showDeletePopupTeamAlloc}>
+        <div tabindex="-1" class="modal-glass slds-backdrop fadein slds-backdrop--open"  style="opacity: 0.8;"></div>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-04" aria-modal="true"
+          aria-describedby="modal-content-id-4" class="slds-modal slds-fade-in-open">
+          <div class="slds-modal__container">
+            <header class="slds-modal__header">
+              <h2 id="modal-heading-04" class="slds-text-heading_medium">Confirmation</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-4">
+              <p>Are you sure you want to delete all the Talent Loadings and related Team Allocations?</p>
+            </div>
+            <footer class="slds-modal__footer">
+              <lightning-button variant="neutral"  style="margin-left: 8px; padding-bottom: 8px;" label="Cancel" onclick={deleteCancel}></lightning-button>
+              <lightning-button variant="brand"  style="margin-left: 8px; padding-bottom: 8px;" label="Confirm" onclick={handleConfirmationTeamAlloc}></lightning-button>
+            </footer>
+          </div>
+        </section>
+   
+      </template>
+    
+     
+
+      <template if:true={showMonthly}>
+        <div class="slds-scrollable modal-container-large" style="margin-right: 10px;">
+        <!-- create folder card -->
+        <lightning-card>
+            
+            <h3 slot="title">
+                <lightning-icon icon-name="standard:people"></lightning-icon>  Talent Loading
+            </h3>
+            
+        <h3 class="title">
+            
+            <div class="slds-grid slds-gutters" style="margin-left: 10px; margin-bottom: 10px;">
+            <div class="slds-col slds-size_1-of-4"><strong >Engagement:</strong> {recordName} </div>
+            <div class="slds-col slds-size_1-of-4"> <strong>Budgeted Hours:</strong> {budgetHours}</div>
+            <div class="slds-col slds-size_1-of-4"> <strong>Start Date:</strong> {formattedStartDate}
+            </div>
+            <div class="slds-col slds-size_1-of-4"><strong>Project Type:</strong> {projectType}</div>
+
+            
+            </div>
+            <div class="slds-grid slds-gutters" style="margin-left: 10px; margin-bottom: 5px;">
+                <div class="slds-col slds-size_1-of-4" style="margin-right: 0px">
+                    <strong>Frequency: </strong>Monthly</div>
+                    <div class="slds-col slds-size_1-of-4" step="0.01"> <strong>Talent Hours:</strong> {talentHours}</div>
+                    <div class="slds-col slds-size_1-of-4"><strong>End Date:</strong> {formattedEndDate}</div>
+                    <div class="slds-col slds-size_1-of-4"><strong>Version:</strong> {version}</div>
+            
+            </div>
+        
+                    </h3>
+      
+        <table class="slds-table slds-table_bordered slds-table_col-bordered" style="margin: 10px; ">
+            <thead>
+                <tr class="slds-text-title_caps">
+                    <th scope="col">
+                          <lightning-input style="margin-left: 8px;" type="checkbox" onchange={handleSelectAll} checked={isAllSelected} variant="label-hidden"></lightning-input>
+                      </th>
+                    <th scope="col">Role</th>
+                    <th scope="col">Location</th>
+                    <th scope="col" class="total-color">Total</th>
+                    <template for:each={months} for:item="month">
+                        <th key={month} scope="col">{month}</th>
+                    </template>
+                </tr>
+                
+            </thead>
+            <tbody>
+
+                <template for:each={tableData} for:item="row">
+                    <tr key={row.id}>
+                        <td>
+                            <lightning-input type="checkbox" data-row-id={row.id} onchange={handleSelect}  style="margin-left: 8px;" checked={row.isSelected} variant="label-hidden"></lightning-input>
+                        </td>
+                        <td class="role-left">
+                            <template if:true={roleValues.data}>
+                                <lightning-combobox data-row-id={row.id} placeholder="None" class="heading" variant="label-hidden" value={row.column1} options={roleValues.data.values} onchange={handleRoleChange}></lightning-combobox>
+                            </template>
+                        </td>
+                        <td>
+                            <template if:true={locValues.data}>
+                                <lightning-combobox data-row-id={row.id} placeholder="None" class="heading" variant="label-hidden" value={row.column2} options={locValues.data.values} onchange={handleLocationChange}></lightning-combobox>
+                            </template>
+                        </td>
+                        <!-- <template for:each={months} for:item="month">
+                            <td key={month} class="slds-cell-wrap">
+                                <lightning-input type="number" step="0.01" variant="label-hidden" class="hours" data-row-id={row.id} data-month={month} onchange={handleHoursChange}></lightning-input>
+                            </td>
+                        </template> -->
+                        <td class="total-color">{row.total}</td> 
+                                <template for:each={row.monthsData} for:item="month">
+                                    <td key={month.month} class="slds-cell-wrap">
+                                        <lightning-input type="number" step="0.01" variant="label-hidden" class="hours" style="text-align: center;" data-row-id={row.id} value={month.value} data-month={month.month} onchange={handleHoursChange}></lightning-input>
+                                    </td>
+                                </template>
+                                
+                                
+                        <!-- Add more columns based on your table structure -->
+                    </tr>
+                </template>
+                <!-- Add rows here -->
+                <tr class="total-color">
+                    <td></td>
+                    <td ><strong>Total</strong></td>
+                    <td></td>
+                    <td>{totalValue}</td>
+                    
+                    <template for:each={columnTotals} for:item="total">
+                        <td key={total}>
+                            {total}
+                        </td>
+                    </template>
+                </tr>
+                               
+            
+                
+            </tbody>
+        </table>
+        
+    <div class="slds-grid slds-gutters">
+        <div class="slds-col"><lightning-button class="slds-float_left" style="margin-left: 8px; padding-bottom: 8px;" variant="brand" label="Add Role"  onclick={addRow} ></lightning-button>
+        <lightning-button  style="margin-left: 8px; padding-bottom: 8px;" variant="neutral" label="Delete Role"  onclick={deleteRow} ></lightning-button>
+        <lightning-button  style="margin-left: 8px; padding-bottom: 8px;" variant="brand" label="Delete TL"  onclick={deleteAll} ></lightning-button>
+
+        <div class="slds-float_right">
+        <lightning-button  style="margin-left: 8px; padding-bottom: 8px;" variant="brand" label="Save"  onclick={saveAction} ></lightning-button>
+        <lightning-button  style="margin-left: 8px; padding-bottom: 8px;" variant="neutral" label="Cancel"  onclick={cancelAction} ></lightning-button>
+    </div>
+</div>
+</div>
+<div if:true={isLoading} class="slds-spinner_container">
+    <lightning-spinner variant="brand" alternative-text="Loading" size="medium"></lightning-spinner>
+</div>
+        </lightning-card>
+    </div>
+    
+      </template>
+
+      <template if:true={showWeekly}>
+        <div class="slds-scrollable modal-container-large" style="margin-right: 10px;">
+            <!-- create folder card -->
+            <lightning-card>
+                
+                <h3 slot="title">
+                    <lightning-icon icon-name="standard:people"></lightning-icon>  Talent Loading
+                </h3>
+                
+            <h3 class="title">
+                
+                <div class="slds-grid slds-gutters" style="margin-left: 10px; margin-bottom: 10px;">
+                <div class="slds-col slds-size_1-of-4"><strong >Engagement:</strong> {recordName} </div>
+                <div class="slds-col slds-size_1-of-4"> <strong>Budgeted Hours:</strong> {budgetHours}</div>
+                <div class="slds-col slds-size_1-of-4"> <strong>Start Date:</strong> {formattedStartDate}
+                </div>
+                <div class="slds-col slds-size_1-of-4"><strong>Project Type:</strong> {projectType}</div>
+    
+                
+                </div>
+                <div class="slds-grid slds-gutters" style="margin-left: 10px; margin-bottom: 5px;">
+                    <div class="slds-col slds-size_1-of-4" style="margin-right: 0px">
+                        <strong>Frequency: </strong>Weekly</div>
+                        <div class="slds-col slds-size_1-of-4" step="0.01"> <strong>Talent Hours:</strong> {talentHours}</div>
+                        <div class="slds-col slds-size_1-of-4"><strong>End Date:</strong> {formattedEndDate}</div>
+                        <div class="slds-col slds-size_1-of-4"><strong>Version:</strong> {version}</div>
+                
+                </div>
+            
+                        </h3>
+          
+            <table class="slds-table slds-table_bordered slds-table_col-bordered" style="margin: 10px; ">
+                <thead>
+                    <tr class="slds-text-title_caps">
+                        <th scope="col">
+                              <lightning-input style="margin-left: 8px;" type="checkbox" onchange={handleSelectAll} checked={isAllSelected} variant="label-hidden"></lightning-input>
+                          </th>
+                        <th scope="col">Role</th>
+                        <th scope="col">Location</th>
+                        <th scope="col" class="total-color">Total</th>
+                        <template for:each={weeks} for:item="week">
+                            <th key={week} scope="col">{week}</th>
+                        </template>
+                    </tr>
+                    
+                </thead>
+                <tbody>
+    
+                    <template for:each={tableData} for:item="row">
+                        <tr key={row.id}>
+                            <td>
+                                <lightning-input type="checkbox" data-row-id={row.id} onchange={handleSelect}  style="margin-left: 8px;" checked={row.isSelected} variant="label-hidden"></lightning-input>
+                            </td>
+                            <td class="role-left">
+                                <template if:true={roleValues.data}>
+                                    <lightning-combobox data-row-id={row.id} placeholder="None" class="heading" variant="label-hidden" value={row.column1} options={roleValues.data.values} onchange={handleRoleChange}></lightning-combobox>
+                                </template>
+                            </td>
+                            <td>
+                                <template if:true={locValues.data}>
+                                    <lightning-combobox data-row-id={row.id} placeholder="None" class="heading" variant="label-hidden" value={row.column2} options={locValues.data.values} onchange={handleLocationChange}></lightning-combobox>
+                                </template>
+                            </td>
+                            <!-- <template for:each={months} for:item="month">
+                                <td key={month} class="slds-cell-wrap">
+                                    <lightning-input type="number" step="0.01" variant="label-hidden" class="hours" data-row-id={row.id} data-month={month} onchange={handleHoursChange}></lightning-input>
+                                </td>
+                            </template> -->
+                            <td class="total-color">{row.total}</td>
+    
+                                    <template for:each={row.monthsData} for:item="month">
+                                        <td key={month.month} class="slds-cell-wrap">
+                                            <lightning-input type="number" step="0.01" variant="label-hidden" class="hours" style="text-align: center;" data-row-id={row.id} value={month.value} data-month={month.month} onchange={handleHoursChangeWeekly}></lightning-input>
+                                        </td>
+                                    </template>
+                                    
+                                    
+                            <!-- Add more columns based on your table structure -->
+                        </tr>
+                    </template>
+                    <!-- Add rows here -->
+                    <tr class="total-color">
+                        <td></td>
+                        
+                        <td ><strong>Total</strong></td>
+                        <td></td>
+                        <td>{totalValue}</td>
+                        <template for:each={columnTotalsWeekly} for:item="total">
+                            <td key={total}>
+                                {total}
+                            </td>
+                        </template>
+                    </tr>
+                                   
+                
+                    
+                </tbody>
+            </table>
+            
+        <div class="slds-grid slds-gutters">
+            <div class="slds-col"><lightning-button class="slds-float_left" style="margin-left: 8px; padding-bottom: 8px;" variant="brand" label="Add Role"  onclick={addRowWeekly} ></lightning-button>
+            <lightning-button  style="margin-left: 8px; padding-bottom: 8px;" variant="neutral" label="Delete Role"  onclick={deleteRowWeekly} ></lightning-button>
+            <lightning-button  style="margin-left: 8px; padding-bottom: 8px;" variant="brand" label="Delete TL"  onclick={deleteAll} ></lightning-button>
+
+            <div class="slds-float_right">
+            <lightning-button  style="margin-left: 8px; padding-bottom: 8px;" variant="brand" label="Save"  onclick={saveAction} ></lightning-button>
+            <lightning-button  style="margin-left: 8px; padding-bottom: 8px;" variant="neutral" label="Cancel"  onclick={cancelAction} ></lightning-button>
+        </div>
+    </div>
+    </div>
+    <div if:true={isLoading} class="slds-spinner_container">
+        <lightning-spinner variant="brand" alternative-text="Loading" size="medium"></lightning-spinner>
+    </div>
+            </lightning-card>
+        </div>
+        
+
+      </template>
+    </template>
